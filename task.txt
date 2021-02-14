@@ -1,0 +1,18 @@
+Front End Task
+
+The task is to build a webpage using Vue.js.
+
+The webpage should use the World Time API (http://
+worldtimeapi.org/) to retrieve its data.
+
+First the webpage should allow the user to select any area from
+the api, for example ‘Europe’.
+
+From there, the user should be able to select any location in the
+selected area, for example ‘Europe/London’.
+
+The webpage should then display the current time in that
+location and area.
+
+Please use git for source control, and make your code available
+online through GitHub, Gitlab, or Bitbucket.
