@@ -1,3 +1,5 @@
+install node.js from https://nodejs.org/en/
+
 # frontendtask
 
 ## Project setup
