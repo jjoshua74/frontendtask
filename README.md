@@ -6,6 +6,7 @@ install node.js from https://nodejs.org/en/
 ```
 npm install
 npm install -g @vue/cli
+npm install sweetalert2
 ```
 
 ### Compiles and hot-reloads for development

@@ -1,20 +1,32 @@
 <template>
-  <div class="container">
-
-      <select class="form-select select-margins" v-model="selectedArea" v-on:change="getRegions(selectedArea)">
-        <option disabled selected value="">Please select an area</option>
-        <option v-bind:key="area" v-for="area in areas">
+  <div class="container row w-100 d-flex justify-content-center">
+    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 mt-2 mb-2">
+      <select
+        class="text-white bg-dark form-control select-margins"
+        v-model="selectedArea"
+        @change="getLocations()"
+        :disabled="areas.length == 0"
+      >
+        <option disabled selected value="">Please select an area...</option>
+        <option :key="area" v-for="area in areas">
           {{ area }}
         </option>
       </select>
-      
-      <select class="form-select select-margins" v-model="selectedRegion" v-on:change="getTime()" v-bind:disabled=disableRegions>
-        <option disabled selected value="">Please select a region</option>
-        <option v-bind:key="region" v-for="region in regions">
-          {{ region }}
+    </div>
+
+    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 mt-2 mb-2">
+      <select
+        class="text-white bg-dark form-control select-margins"
+        v-model="selectedLocation"
+        @change="getTime()"
+        :disabled="locations.length <= 1"
+      >
+        <option disabled selected value="">Please select a location...</option>
+        <option :key="location" v-for="location in locations">
+          {{ location }}
         </option>
       </select>
-
+    </div>
   </div>
 </template>
 
@@ -25,66 +37,81 @@ export default {
   data() {
     return {
       areas: [],
-      regions: [],
-      disableRegions: true,
+      locations: [],
+      allLocations: [],
       selectedArea: "",
-      selectedRegion: "",
+      selectedLocation: "",
     };
   },
   methods: {
-    getRegions(area) {
-      this.regions = []; //reset so as to not append to a previous search
-      axios
-        .get("http://worldtimeapi.org/api/timezone/" + area)
-        .then((res) => {
-          res.data.forEach((element) => {
-            //used to separate the region from the area
-            //cannot slice since some areas are divided by '/'
-            let region = element.substring(area.length+1); 
-            this.regions.push(region);
-          });
-          this.disableRegions = false;
-        })
-        //accepts an area and returns a string array of the regions within.
-        .catch((err) => console.log(err));
-    },
-    getTime(){
-      const location = {area: this.selectedArea, region: this.selectedRegion};
-      console.log(location);
-      this.$emit("time-location", location)
-    }
-  },
-  created() {
-    axios
-      .get("http://worldtimeapi.org/api/timezone")
-      .then((res) =>
-        res.data.forEach((element) => {
-          let area = element.split("/")[0];
+    getLocations() {
+      this.locations = []; //reset so as to not append to a previous search
 
-          if (
-            !this.areas.includes(area) &&
-            area !== area.toUpperCase() &&
-            area !== "Etc"
-          ) {
-            //ensures no duplicate areas
-            //also removes time zones (they are upper case with the exception of etc)
-            this.areas.push(area);
-          }
-        })
-      )
-      .catch((err) => console.log(err));
+      // reset the selectedLocation since a new area has been selected
+      this.selectedLocation = "";
+
+      this.allLocations.forEach((element) => {
+        let elementSplit = element.split("/");
+        //first index is the area of the current item in the allLocations array
+        if (elementSplit[0] == this.selectedArea) {
+          //slice to remove the area and only return locations
+          this.locations.push(elementSplit.slice(1).join("/"));
+        }
+      });
+
+      // If the list of locations is <= 1 then there are no locations for that area.
+      // The 1 item in the array will be the area listed again.
+      if (this.locations.length <= 1) {
+        // call getTime here since the location <select> will stay disabled due to no locations
+        this.getTime();
+      } else {
+        // for TimeDisplay to hide the time again when the user selects a new area
+        this.$emit("remove-time");
+      }
+    },
+    getTime() {
+      const timeZoneLocation = {
+        area: this.selectedArea,
+        location: this.selectedLocation,
+      };
+      this.$emit("time-zone", timeZoneLocation);
+    },
+  },
+  async created() {
+    this.$emit("loader", true)
+    try {
+      const response = await axios.get("http://worldtimeapi.org/api/timezone");
+
+      response.data.forEach((element) => {
+        this.allLocations.push(element);
+        element = element.split("/");
+
+        // attempt to de-duplicate the areas more efficiently.
+        // all areas are put into the array with duplicates. The array is then
+        // converted to a set and then back to an array.
+        this.areas.push(element[0]);
+
+        // if (!this.areas.includes(element[0])) {
+        //   //ensures no duplicate areas
+        //   //also removes time zones (they are upper case with the exception of etc)
+        //   this.areas.push(element[0]);
+        // }
+      });
+
+      this.areas = [...new Set(this.areas)];
+
+      this.$emit("loader", false)
+
+    } catch (e) {
+      //displays the pretty alert
+      this.$swal("WorldTimeAPI.org error. Please try again later.");
+    }
   },
 };
 </script>
 
 <style scoped>
-
-  .container{
-    display: flex;
-  }
-
-  .select-margins{
-    margin: 10px;
-  }
-
+.select-margins {
+  margin: 10px;
+}
 </style>

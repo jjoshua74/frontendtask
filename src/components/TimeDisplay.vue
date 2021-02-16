@@ -1,9 +1,9 @@
 <template>
-  <div class="container">
-    <img src="../assets/worldmap.png" />
-    <p class="time-text" v-bind:class="{ hide: time == '' }">
+  <div class="container justify-content-center">
+    <img class="img-fluid" src="../assets/worldmap.jpg" />
+    <p class="time-text text-center" v-show=" time != '' ">
       It is currently <br />
-      {{ time }}
+      <u class="text-info">{{ time }}</u>
     </p>
   </div>
 </template>
@@ -11,36 +11,12 @@
 <script>
 export default {
   name: "TimeDisplay",
-  props: ["time"],
+  props: {
+    time: String 
+  },
 };
 </script>
 
 <style scoped>
-.container {
-  position: relative;
-  color: black;
-  font-size: 40px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  margin-top: 10px;
-}
 
-.hide {
-  visibility: hidden;
-}
-
-img{
-    height: 398px;
-    width: 800px;
-}
-
-.time-text {
-  background-color: rgba(255, 255, 255, 0.5);
-  position:absolute;
-  left: 0;
-  top: 140px; 
-  right: 0;
-  bottom: 130px;
-  margin:0px;
-}
 </style>
